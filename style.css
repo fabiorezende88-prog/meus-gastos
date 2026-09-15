@@ -52,26 +52,104 @@ small{color:#8993a5;letter-spacing:1.6px}
 @media (max-width:520px){.app{padding-left:13px;padding-right:13px}.summary{padding:22px 18px}.summary strong{font-size:33px}.card{padding:16px}}
 
 
-/* V17.1 - ícones maiores e toque fácil no celular */
-.section-title{display:flex;align-items:center;gap:13px;min-width:0}
-.section-title .row{min-width:0}
-.section-title h2{margin:0}
-.section-icon{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;flex:0 0 38px;background:rgba(16,185,129,.14);color:#39d99a;font-size:25px;font-weight:800;line-height:1}
-.expense .icon{width:48px;height:48px;flex-basis:48px;border-radius:15px}
-.expense .icon .catSvg{width:29px!important;height:29px!important}
-.cat .icon{width:48px;height:48px;flex-basis:48px;border-radius:15px}
-.cat .icon .catSvg{width:29px!important;height:29px!important}
-.mini-icon{width:40px;height:40px;flex-basis:40px;border-radius:12px}
-.mini-icon .catSvg{width:25px!important;height:25px!important}
-.categoryButtons{grid-template-columns:repeat(2,1fr);gap:10px}
-.categoryButtons button{min-height:54px;padding:12px 8px;font-size:14px}
-.categoryButtons button .catSvg{width:23px!important;height:23px!important}
-.collapse-icon{width:36px;height:36px;flex-basis:36px;border-radius:11px;font-size:23px}
+/* V17 - tema verde premium baseado no layout aprovado */
+:root{
+  --bg:#062f2c;
+  --bg2:#031f1e;
+  --surface:#0b3b37;
+  --surface2:#104943;
+  --surface3:#123f3c;
+  --text:#f4fffb;
+  --muted:#9bc0ba;
+  --line:rgba(116,220,198,.16);
+  --primary:#16d887;
+  --primary2:#08b96f;
+  --accent:#62efb0;
+  --danger:#ff536b;
+  --shadow:0 14px 34px rgba(0,0,0,.24)
+}
+*{box-sizing:border-box}
+html{background:var(--bg2)}
+body{background:radial-gradient(120% 70% at 100% 0%,#0b514a 0%,transparent 48%),linear-gradient(145deg,#063b37 0%,#032724 58%,#021c1b 100%);color:var(--text);min-height:100vh}
+.app{max-width:420px;margin:0 auto;padding:14px 28px 40px}
+header{margin-bottom:16px;align-items:center}
+.brand{display:flex;align-items:center;gap:10px;min-width:0}
+.brand-icon{width:32px;height:32px;flex:0 0 32px;display:grid;place-items:center;color:var(--primary)}
+.brand-icon svg{width:32px;height:32px;fill:currentColor;stroke:#062f2c;stroke-width:1.5;stroke-linejoin:round}
+header small{font-size:7px;letter-spacing:1.45px;color:#9cc1bb}
+header h1{font-size:20px;line-height:1.05;margin:2px 0 1px;letter-spacing:-.5px;color:#f5fffc}
+.tagline{font-size:7px!important;line-height:1.2;margin:0!important;color:#9bc0ba!important}
+header button{border:1px solid rgba(115,220,199,.22);background:rgba(18,73,68,.72);color:#eafff9;border-radius:13px;padding:8px 10px;font-size:10px;font-weight:700;white-space:nowrap;box-shadow:none;text-transform:capitalize}
+.summary{background:linear-gradient(145deg,#0a4540,#07332f);border:1px solid rgba(97,238,186,.18);border-radius:19px;padding:14px 12px 12px;margin-bottom:10px;box-shadow:var(--shadow)}
+.summary-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.summary span{color:#9cc2bc;font-size:9px}
+.summary strong{display:block;font-size:25px;line-height:1.05;margin:3px 0 11px;letter-spacing:-.6px;color:#f5fffc}
+.trend{display:flex;flex-direction:column;align-items:flex-end;padding-top:5px;text-align:right;min-width:78px}
+.trend b{color:var(--primary);font-size:13px;line-height:1.1}
+.trend span{font-size:6.5px;color:#9cc2bc;margin-top:2px}
+.split{gap:7px}
+.split div{background:rgba(90,213,190,.10);border:1px solid rgba(115,220,199,.08);border-radius:11px;padding:8px;color:#a5c7c1;font-size:8px}
+.split b{font-size:11px;margin-top:3px;color:#f4fffb}
+.card{background:linear-gradient(145deg,#0b3e3a,#0a3532);border:1px solid rgba(116,220,198,.15);border-radius:17px;padding:12px;margin-top:9px;box-shadow:0 10px 24px rgba(0,0,0,.18)}
+.card h2{color:#f4fffb;font-size:12px;letter-spacing:-.1px;margin:0 0 7px}
+.budget{background:linear-gradient(145deg,#f4faf8,#dfece9);color:#08312f;border:0;box-shadow:0 8px 20px rgba(0,0,0,.16)}
+.budget h2,.budget b{color:#08312f}.budget button{color:#0b8d63;background:#d2efe5;border-radius:8px;padding:5px 8px;font-size:8px}.budget span{color:#5b7773;font-size:7px}.budget b{font-size:13px}.progress{height:5px;background:#c9d9d5;margin-top:7px}.progress i{background:var(--primary);box-shadow:none}.progress i.danger{background:var(--danger)}
+.add{margin-top:9px;border:0;border-radius:13px;background:linear-gradient(90deg,#22dc8a,#0dbb70);color:#eafff7;font-weight:900;font-size:12px;padding:12px;box-shadow:0 8px 18px rgba(8,185,111,.25)}
+.report{background:linear-gradient(145deg,#0b413d,#0a3532);border:1px solid rgba(116,220,198,.16)}
+.report .report-month{font-size:7px;color:#a0c1bc}.report-grid{gap:6px;margin-top:5px}.report-grid>div{background:rgba(73,191,171,.09);border:1px solid rgba(116,220,198,.06);border-radius:10px;padding:8px}.report-grid span{font-size:7px;color:#9fc2bc}.report-grid b{font-size:10px;margin-top:3px;color:#f2fffb}.comparison,.available-report{border-color:rgba(116,220,198,.12);padding-top:8px;margin-top:8px;font-size:8px;color:#9fc2bc}.comparison strong,.available-report b{font-size:9px}
+.collapsible{padding:0;overflow:hidden;background:rgba(7,52,49,.88)}
+.collapsible-head{min-height:44px;padding:0 11px}.collapsible-head h2{font-size:10px;margin:0}.collapse-icon{width:22px;height:22px;flex-basis:22px;border-radius:7px;background:rgba(82,207,181,.07);color:#8bd3c4;font-size:16px}.collapsible-head[aria-expanded=true] .collapse-icon{background:rgba(82,207,181,.13);color:var(--accent)}
+.collapsible-body{padding:0 11px 11px}.collapsible .row{width:100%}.collapsible .row button{font-size:7px;color:#9fc2bc}.filter-title{font-size:7px;color:#8fb7b0}.filter-pill,#categoryFilter{font-size:8px;background:#0d4742;color:#dff8f2;border-color:rgba(116,220,198,.12)}.filter-pill.active{background:#0fc477;border-color:#0fc477;color:#052e29}
+.expense,.cat,.cat-budget{border-color:rgba(116,220,198,.11)}.icon,.mini-icon{background:rgba(73,191,171,.10);color:var(--accent)}.main b,.amount{color:#ecfffa}.main span,.cat-budget-values,.cat-budget-help,.cat-budget-foot{color:#8fb6af}.edit{color:var(--accent)!important}.delete{color:var(--danger)!important}.cat .bar,.cat-budget-bar{background:rgba(116,220,198,.10)}.cat .bar i,.cat-budget-bar i,.barcol i{background:var(--primary)}.cat-budget-bar i.over{background:var(--danger)}.cat-budget-bar i.warn{background:#f2bd49}
+.chart{border-color:rgba(116,220,198,.14)}.barcol span{color:#8fb6af}
+.account-card{background:#0a3835}.account-card #syncStatus{color:#9fc2bc}.account-card #logoutBtn{background:#123f3b;color:#dff8f2}
+.modal{background:rgba(0,15,14,.76)}.sheet{background:#07332f;color:#f4fffb;border:1px solid rgba(116,220,198,.16);box-shadow:0 -12px 40px rgba(0,0,0,.35)}.sheet h2{color:#f4fffb}.close{background:#123f3b;color:#eafff7}.value,.text{background:#0b403c;color:#f4fffb;border-color:rgba(116,220,198,.16)}.value::placeholder,.text::placeholder{color:#789d97}.toggle{background:#0b403c}.toggle button{color:#8fb6af}.toggle .on{background:#174f49;color:#eafff7;box-shadow:none}.categoryButtons button{background:#0b403c;color:#dff8f2;border-color:rgba(116,220,198,.14)}.categoryButtons .selected{border-color:var(--primary);background:rgba(22,216,135,.12);color:var(--accent)}.monthOpt{background:#07332f;color:#dff8f2;border-color:rgba(116,220,198,.12)}.monthOpt.sel{color:var(--accent)}
+.auth-screen{background:linear-gradient(145deg,#063b37,#021f1e)}.auth-card{background:#07332f;border-color:rgba(116,220,198,.16);color:#f4fffb}.auth-card h1{color:#f4fffb}.auth-card p,.auth-status{color:#9fc2bc}.auth-secondary{background:#123f3b;color:#dff8f2}
+.hidden{display:none!important}
+@media(max-width:520px){.app{padding-left:28px;padding-right:28px;padding-top:11px}.summary{padding:13px 11px}.summary strong{font-size:24px}.card{padding:11px}.add{padding:12px}}
+
+/* V17.2 - recuperar a ergonomia do layout mobile aprovado */
 @media (max-width:520px){
-  .section-icon{width:40px;height:40px;flex-basis:40px;font-size:26px}
-  .collapse-icon{width:38px;height:38px;flex-basis:38px}
-  .expense .icon,.cat .icon{width:50px;height:50px;flex-basis:50px}
-  .expense .icon .catSvg,.cat .icon .catSvg{width:30px!important;height:30px!important}
-  .mini-icon{width:42px;height:42px;flex-basis:42px}
-  .mini-icon .catSvg{width:26px!important;height:26px!important}
+  .app{max-width:520px;padding:18px 13px 48px}
+  header{margin-bottom:20px}
+  header small{font-size:11px;letter-spacing:1.4px}
+  header h1{font-size:28px;letter-spacing:-.6px}
+  .brand{gap:10px}
+  .brand-icon,.brand-icon svg{width:38px;height:38px}
+  header button{padding:10px 13px;font-size:12px;border-radius:12px}
+  .summary{padding:22px 18px;border-radius:22px;margin-bottom:14px}
+  .summary span{font-size:13px}
+  .summary strong{font-size:33px;margin:6px 0 20px}
+  .trend b{font-size:15px}.trend span{font-size:8px}
+  .split{gap:10px}
+  .split div{border-radius:14px;padding:12px;font-size:10px}
+  .split b{font-size:16px;margin-top:5px}
+  .card{padding:16px;border-radius:20px;margin-top:14px}
+  .card h2{font-size:17px;margin-bottom:12px}
+  .budget b{font-size:19px}.budget span{font-size:12px}
+  .budget button{font-size:11px;padding:7px 10px;border-radius:10px}
+  .progress{height:7px;margin-top:9px}
+  .add{margin-top:14px;border-radius:16px;padding:17px;font-size:16px;min-height:50px;display:flex;align-items:center;justify-content:center}
+  .report{padding:16px}
+  .report .report-month{font-size:11px}
+  .report-grid{gap:8px;margin-top:8px}
+  .report-grid>div{border-radius:12px;padding:11px}
+  .report-grid span{font-size:11px}.report-grid b{font-size:15px;margin-top:4px}
+  .comparison,.available-report{padding-top:12px;margin-top:12px;font-size:12px}
+  .comparison strong,.available-report b{font-size:13px}
+  .collapsible{padding:0;border-radius:18px}
+  .collapsible-head{min-height:52px;padding:0 14px}
+  .collapsible-head h2{font-size:14px}
+  .collapse-icon{width:30px;height:30px;flex-basis:30px;border-radius:9px;font-size:20px}
+  .collapsible-body{padding:0 14px 14px}
+  .collapsible .row button{font-size:11px}
+  .filter-title{font-size:10px}.filter-pill,#categoryFilter{font-size:11px}
+  .expense .icon{width:42px;height:42px;flex-basis:42px}
+  .icon,.mini-icon{border-radius:13px}
+  .catSvg{width:24px!important;height:24px!important}
+  .mini-icon{width:38px;height:38px;flex-basis:38px}
+  .mini-icon .catSvg{width:23px!important;height:23px!important}
+  .cat .name{font-size:14px}
+  .cat-budget-name{font-size:14px}
+  .account-card{padding:16px}
 }
