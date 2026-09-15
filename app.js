@@ -25,6 +25,31 @@ function render(){let all=E.filter(x=>x.date.slice(0,7)==M).sort((a,b)=>b.create
 $("list").innerHTML=L.length?L.map(x=>`<div class="expense"><div class="icon">${iconFor(x.category)}</div><div class="main"><b>${esc(x.description||x.category.slice(2))}</b><span>${x.type=="fixed"?"Fixa":"Variável"} · ${br(x.date)}</span></div><div class="amount">${money(x.value)}<button type="button" class="edit" onclick="edit('${x.id}')">Editar</button><button class="delete" onclick="del('${x.id}')">Excluir</button></div></div>`).join(""):`<div class="empty">Nenhuma despesa neste mês.<br>Toque em <b>+ GASTO</b> para começar.</div>`;
 let b=B[M]||0,avail=b-tot;$("spent").textContent=money(tot);$("available").textContent=b?(avail>=0?"Disponível: "+money(avail):"Acima do orçamento: "+money(-avail)):"Sem orçamento";$("progress").style.width=(b?Math.min(tot/b*100,100):0)+"%";$("progress").classList.toggle("danger",b&&tot>b);
 let s={};L.forEach(x=>s[x.category]=(s[x.category]||0)+x.value);let a=Object.entries(s).sort((x,y)=>y[1]-x[1]),mx=a[0]?.[1]||1;$("cats").innerHTML=a.length?a.map(([c,v])=>`<div class="cat"><div class="icon">${iconFor(c)}</div><div class="name">${esc(c.slice(2))}<div class="bar"><i style="width:${v/mx*100}%"></i></div></div><b>${money(v)}</b></div>`).join(""):`<div class="empty">Sem gastos neste mês.</div>`;
+// Relatório mensal
+function renderReport(){
+  const current=E.filter(x=>x.date.slice(0,7)==M);
+  const total=current.reduce((s,x)=>s+x.value,0);
+  const fixed=current.filter(x=>x.type=="fixed").reduce((s,x)=>s+x.value,0);
+  const variable=total-fixed;
+  const budget=B[M]||0;
+  const available=budget-total;
+  const d=new Date(M+"-01T12:00");
+  const prev=new Date(d.getFullYear(),d.getMonth()-1,1).toISOString().slice(0,7);
+  const prevTotal=E.filter(x=>x.date.slice(0,7)==prev).reduce((s,x)=>s+x.value,0);
+  $("reportMonth").textContent=ml(M);
+  $("reportTotal").textContent=money(total);
+  $("reportFixed").textContent=money(fixed);
+  $("reportVariable").textContent=money(variable);
+  $("reportBudget").textContent=budget?money(budget):"Não definido";
+  $("reportAvailable").textContent=budget?(available>=0?money(available):"- "+money(-available)):"—";
+  $("reportAvailable").className=budget?(available>=0?"positive":"negative"):"";
+  const comp=$("comparisonValue");
+  comp.className="";
+  if(prevTotal===0 && total===0) comp.textContent="Sem gastos nos dois meses";
+  else if(prevTotal===0) { comp.textContent="Novo gasto neste mês"; comp.className="negative"; }
+  else { const pct=((total-prevTotal)/prevTotal)*100; const arrow=pct>0?"↑ ":pct<0?"↓ ":""; comp.textContent=arrow+Math.abs(pct).toFixed(1).replace(".",",")+"%"; comp.className=pct>0?"negative":pct<0?"positive":""; }
+}
+
 let d=new Date(M+"-01T12:00"),ms=[];for(let i=5;i>=0;i--){let q=new Date(d.getFullYear(),d.getMonth()-i,1);ms.push(q.toISOString().slice(0,7))}let vs=ms.map(m=>E.filter(x=>x.date.slice(0,7)==m).reduce((s,x)=>s+x.value,0)),max=Math.max(...vs,1);$("chart").innerHTML=ms.map((m,i)=>`<div class="barcol"><i style="height:${vs[i]/max*120}px" title="${money(vs[i])}"></i><span>${new Date(m+"-01T12:00").toLocaleDateString("pt-BR",{month:"short"}).replace(".","")}</span></div>`).join("")}
 function renderCats(){$("categoryButtons").innerHTML=cats[T].map(c=>`<button class="${c==C?"selected":""}" onclick="choose('${c.replace(/'/g,"\\'")}')">${iconFor(c)}<span>${c.replace(/^[^ ]+\s/,"")}</span></button>`).join("")}
 function choose(c){C=c;renderCats()}function br(d){return new Date(d+"T12:00").toLocaleDateString("pt-BR")}function esc(s){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
@@ -42,4 +67,4 @@ function selMonth(m){M=m;$("months").classList.add("hidden");render()}
 function populateCategoryFilter(){let vals=[...new Set(E.filter(x=>x.date.slice(0,7)==M).map(x=>x.category))];$("categoryFilter").innerHTML='<option value="all">Todas as categorias</option>'+vals.map(c=>`<option value="${esc(c)}">${esc(c.replace(/^[^ ]+\s/,""))}</option>`).join("");$("categoryFilter").value=vals.includes(categoryFilter)?categoryFilter:"all";categoryFilter=$("categoryFilter").value}
 document.querySelectorAll(".filter-pill").forEach(b=>b.onclick=()=>{typeFilter=b.dataset.type;document.querySelectorAll(".filter-pill").forEach(x=>x.classList.remove("active"));b.classList.add("active");render()});
 $("categoryFilter").onchange=()=>{categoryFilter=$("categoryFilter").value;render()};
-const oldRender=render;render=function(){populateCategoryFilter();oldRender()};render();
+const oldRender=render;render=function(){populateCategoryFilter();oldRender();renderReport()};render();

@@ -9,6 +9,11 @@
 <button class="add" id="addBtn">＋ GASTO</button>
 <section class="card"><div class="row"><h2>Gastos recentes</h2><button id="clearBtn">Limpar mês</button></div><div class="filter-title">FILTRAR GASTOS</div><div class="type-pills"><button class="filter-pill active" data-type="all">Todos</button><button class="filter-pill" data-type="fixed">Fixas</button><button class="filter-pill" data-type="variable">Variáveis</button></div><select id="categoryFilter"><option value="all">Todas as categorias</option></select><div id="list"></div></section>
 <section class="card"><h2>Resumo por categoria</h2><div id="cats"></div></section>
+<section class="card report"><div class="row"><h2>Relatório mensal</h2><span id="reportMonth" class="report-month"></span></div><div class="report-grid">
+<div><span>Total</span><b id="reportTotal">R$ 0,00</b></div><div><span>Fixas</span><b id="reportFixed">R$ 0,00</b></div><div><span>Variáveis</span><b id="reportVariable">R$ 0,00</b></div><div><span>Orçamento</span><b id="reportBudget">Não definido</b></div></div>
+<div class="comparison"><span id="comparisonLabel">Comparação com o mês anterior</span><strong id="comparisonValue">—</strong></div>
+<div class="available-report"><span>Saldo do orçamento</span><b id="reportAvailable">—</b></div>
+</section>
 <section class="card"><h2>Últimos 6 meses</h2><div id="chart" class="chart"></div></section>
 </div>
 <div class="modal hidden" id="modal"><div class="sheet"><div class="row"><h2 id="modalTitle">Novo gasto</h2><button class="close" id="close">×</button></div>
