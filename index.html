@@ -1,7 +1,7 @@
 <!doctype html><html lang="pt-BR"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#111827"><meta name="apple-mobile-web-app-capable" content="yes">
-<title>Meus Gastos</title><link rel="manifest" href="manifest.json"><link rel="stylesheet" href="style.css?v=18"></head>
+<title>Meus Gastos</title><link rel="manifest" href="manifest.json"><link rel="stylesheet" href="style.css?v=17"></head>
 <body>
 <div id="authScreen" class="auth-screen">
   <div class="auth-card">
@@ -16,19 +16,19 @@
   </div>
 </div>
 <div id="appShell" class="hidden"><div class="app">
-<header><div class="brand"><div class="brand-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M8 15h25a7 7 0 0 1 7 7v14a5 5 0 0 1-5 5H11a7 7 0 0 1-7-7V12a5 5 0 0 1 5-5h24a4 4 0 0 1 4 4v4H8z"/><path d="M31 22h13v10H31a5 5 0 0 1 0-10zM35 27h.01"/></svg></div><div><small>CONTROLE FINANCEIRO</small><h1>Meus Gastos</h1><p class="tagline">Organize hoje, conquiste amanhã.</p></div></div><button id="monthBtn"></button></header>
-<section class="summary"><div class="summary-top"><div><span>Total gasto</span><strong id="total">R$ 0,00</strong></div><div class="trend" id="summaryTrend"><b>—</b><span>em relação ao mês anterior</span></div></div><div class="split"><div>Fixas<b id="fixed">R$ 0,00</b></div><div>Variáveis<b id="variable">R$ 0,00</b></div></div></section>
+<header><div><small>CONTROLE FINANCEIRO</small><h1>Meus Gastos</h1></div><button id="monthBtn"></button></header>
+<section class="summary"><span>Total gasto</span><strong id="total">R$ 0,00</strong><div class="split"><div>Fixas<b id="fixed">R$ 0,00</b></div><div>Variáveis<b id="variable">R$ 0,00</b></div></div></section>
 <section class="card budget"><div class="row"><h2>Orçamento do mês</h2><button id="budgetBtn">Definir</button></div><div class="row"><b id="spent">R$ 0,00</b><span id="available">Sem orçamento</span></div><div class="progress"><i id="progress"></i></div></section>
 <button class="add" id="addBtn">＋ GASTO</button><section class="card report"><div class="row"><h2>Relatório mensal</h2><span id="reportMonth" class="report-month"></span></div><div class="report-grid">
 <div><span>Total</span><b id="reportTotal">R$ 0,00</b></div><div><span>Fixas</span><b id="reportFixed">R$ 0,00</b></div><div><span>Variáveis</span><b id="reportVariable">R$ 0,00</b></div><div><span>Orçamento</span><b id="reportBudget">Não definido</b></div></div>
 <div class="comparison"><span id="comparisonLabel">Comparação com o mês anterior</span><strong id="comparisonValue">—</strong></div>
 <div class="available-report"><span>Saldo do orçamento</span><b id="reportAvailable">—</b></div>
 </section>
-<section class="card collapsible"><div class="collapsible-head" role="button" tabindex="0" aria-expanded="false" data-collapse="recent"><div class="row"><h2>Gastos recentes</h2><button id="clearBtn">Limpar mês</button></div><span class="collapse-icon">+</span></div><div class="collapsible-body hidden" id="collapse-recent"><div class="filter-title">FILTRAR GASTOS</div><div class="type-pills"><button class="filter-pill active" data-type="all">Todos</button><button class="filter-pill" data-type="fixed">Fixas</button><button class="filter-pill" data-type="variable">Variáveis</button></div><select id="categoryFilter"><option value="all">Todas as categorias</option></select><div id="list"></div></div></section>
-<section class="card collapsible"><div class="collapsible-head" role="button" tabindex="0" aria-expanded="false" data-collapse="cats"><h2>Resumo por categoria</h2><span class="collapse-icon">+</span></div><div class="collapsible-body hidden" id="collapse-cats"><div id="cats"></div></div></section>
+<section class="card collapsible"><div class="collapsible-head" role="button" tabindex="0" aria-expanded="false" data-collapse="recent"><div class="section-title"><span class="section-icon recent-icon">◷</span><div class="row"><h2>Gastos recentes</h2><button id="clearBtn">Limpar mês</button></div></div><span class="collapse-icon">+</span></div><div class="collapsible-body hidden" id="collapse-recent"><div class="filter-title">FILTRAR GASTOS</div><div class="type-pills"><button class="filter-pill active" data-type="all">Todos</button><button class="filter-pill" data-type="fixed">Fixas</button><button class="filter-pill" data-type="variable">Variáveis</button></div><select id="categoryFilter"><option value="all">Todas as categorias</option></select><div id="list"></div></div></section>
+<section class="card collapsible"><div class="collapsible-head" role="button" tabindex="0" aria-expanded="false" data-collapse="cats"><div class="section-title"><span class="section-icon">◔</span><h2>Resumo por categoria</h2></div><span class="collapse-icon">+</span></div><div class="collapsible-body hidden" id="collapse-cats"><div id="cats"></div></div></section>
 
-<section class="card category-budget-card collapsible"><div class="collapsible-head" role="button" tabindex="0" aria-expanded="false" data-collapse="catbudget"><div class="row"><h2>Orçamento por categoria</h2><span class="report-month">Mês selecionado</span></div><span class="collapse-icon">+</span></div><div class="collapsible-body hidden" id="collapse-catbudget"><p class="category-budget-help">Defina um limite para cada categoria e acompanhe seus gastos.</p><div id="categoryBudgets"></div></div></section>
-<section class="card collapsible"><div class="collapsible-head" role="button" tabindex="0" aria-expanded="false" data-collapse="chart"><h2>Últimos 6 meses</h2><span class="collapse-icon">+</span></div><div class="collapsible-body hidden" id="collapse-chart"><div id="chart" class="chart"></div></div></section>
+<section class="card category-budget-card collapsible"><div class="collapsible-head" role="button" tabindex="0" aria-expanded="false" data-collapse="catbudget"><div class="section-title"><span class="section-icon">◎</span><div class="row"><h2>Orçamento por categoria</h2><span class="report-month">Mês selecionado</span></div></div><span class="collapse-icon">+</span></div><div class="collapsible-body hidden" id="collapse-catbudget"><p class="category-budget-help">Defina um limite para cada categoria e acompanhe seus gastos.</p><div id="categoryBudgets"></div></div></section>
+<section class="card collapsible"><div class="collapsible-head" role="button" tabindex="0" aria-expanded="false" data-collapse="chart"><div class="section-title"><span class="section-icon">▥</span><h2>Últimos 6 meses</h2></div><span class="collapse-icon">+</span></div><div class="collapsible-body hidden" id="collapse-chart"><div id="chart" class="chart"></div></div></section>
 <section class="card account-card"><div class="row"><div><h2>Sincronização</h2><span id="syncStatus">Conectado</span></div><button id="logoutBtn">Sair</button></div></section>
 </div></div>
 <div class="modal hidden" id="modal"><div class="sheet"><div class="row"><h2 id="modalTitle">Novo gasto</h2><button class="close" id="close">×</button></div>
@@ -40,8 +40,8 @@
 <div class="modal hidden" id="categoryBudgetModal"><div class="sheet"><div class="row"><h2 id="categoryBudgetTitle">Orçamento por categoria</h2><button class="close" id="categoryBudgetClose">×</button></div><input type="hidden" id="categoryBudgetCategory"><p>Defina o limite mensal para esta categoria.</p><label>Orçamento</label><input id="categoryBudgetValue" class="value" inputmode="decimal" placeholder="R$ 0,00"><div class="category-budget-actions"><button class="secondary" id="categoryBudgetCancel">Cancelar</button><button class="save" id="categoryBudgetSave">SALVAR</button></div></div></div>
 <div class="modal hidden" id="months"><div class="sheet"><div class="row"><h2>Escolher mês</h2><button class="close" id="monthsClose">×</button></div><div id="monthList"></div></div></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="config.js?v=18"></script>
-<script src="app.js?v=18"></script>
+<script src="config.js?v=17"></script>
+<script src="app.js?v=17"></script>
 <script>
 (function(){
   document.querySelectorAll('.collapsible-head').forEach(function(head){

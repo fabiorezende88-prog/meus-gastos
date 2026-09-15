@@ -126,9 +126,9 @@ function renderReport(){
   $("reportAvailable").className=budget?(available>=0?"positive":"negative"):"";
   const comp=$("comparisonValue");
   comp.className="";
-  if(prevTotal===0 && total===0) { comp.textContent="Sem gastos nos dois meses"; const st=$("summaryTrend"); if(st) st.querySelector("b").textContent="—"; }
-  else if(prevTotal===0) { comp.textContent="Novo gasto neste mês"; comp.className="negative"; const st=$("summaryTrend"); if(st) {st.querySelector("b").textContent="NOVO"; st.querySelector("b").style.color="#16d887";} }
-  else { const pct=((total-prevTotal)/prevTotal)*100; const arrow=pct>0?"↑ ":pct<0?"↓ ":""; comp.textContent=arrow+Math.abs(pct).toFixed(1).replace(".",",")+"%"; comp.className=pct>0?"negative":pct<0?"positive":""; const st=$("summaryTrend"); if(st){st.querySelector("b").textContent=arrow+Math.abs(pct).toFixed(0)+"%"; st.querySelector("b").style.color=pct>0?"#ffb3bd":"#16d887";} }
+  if(prevTotal===0 && total===0) comp.textContent="Sem gastos nos dois meses";
+  else if(prevTotal===0) { comp.textContent="Novo gasto neste mês"; comp.className="negative"; }
+  else { const pct=((total-prevTotal)/prevTotal)*100; const arrow=pct>0?"↑ ":pct<0?"↓ ":""; comp.textContent=arrow+Math.abs(pct).toFixed(1).replace(".",",")+"%"; comp.className=pct>0?"negative":pct<0?"positive":""; }
 }
 function renderCats(){$("categoryButtons").innerHTML=cats[T].map(c=>`<button class="${c==C?"selected":""}" onclick="choose('${c.replace(/'/g,"\\'")}')">${iconFor(c)}<span>${c.replace(/^[^ ]+\s/,"")}</span></button>`).join("")}
 function choose(c){C=c;renderCats()}function br(d){return new Date(d+"T12:00").toLocaleDateString("pt-BR")}function esc(s){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
