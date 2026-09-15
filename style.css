@@ -118,17 +118,3 @@ header button{border:1px solid rgba(115,220,199,.22);background:rgba(18,73,68,.7
   .cat-budget-name{font-size:14px}
   .account-card{padding:16px}
 }
-
-/* Ajuste solicitado: botão Registrar Gasto 25% maior */
-.add{
-  font-size:15px;
-  padding:15px;
-}
-@media(max-width:520px){
-  .add{
-    min-height:63px;
-    padding:0 21px;
-    font-size:20px;
-    border-radius:20px;
-  }
-}
