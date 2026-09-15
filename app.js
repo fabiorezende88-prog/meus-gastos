@@ -65,39 +65,13 @@ function showAuth(msg=""){ $("authScreen").classList.remove("hidden");$("appShel
 function showApp(){$("authScreen").classList.add("hidden");$("appShell").classList.remove("hidden")}
 async function initCloud(){
  if(!configured()){showAuth("A sincronização ainda não está configurada. Abra o arquivo config.js e coloque a URL e a chave anon do seu projeto Supabase.");return}
- // Use o armazenamento nativo do navegador. É o caminho mais compatível
- // com Chrome mobile, Chrome desktop, Safari e PWAs.
- supabaseClient=window.supabase.createClient(window.SUPABASE_CONFIG.url,window.SUPABASE_CONFIG.anonKey,{auth:{
-   persistSession:true,
-   autoRefreshToken:true,
-   detectSessionInUrl:true,
-   storage:window.localStorage,
-   storageKey:"meus_gastos_supabase_auth",
-   flowType:"pkce"
- }});
- // O listener é registrado antes da leitura inicial para não perder
- // a sessão restaurada pelo Supabase em navegadores móveis.
- supabaseClient.auth.onAuthStateChange((event,session)=>{
-   if(session){
-     currentUser=session.user;
-     showApp();
-     setTimeout(()=>{cloudLoad(true);startRealtime()},0);
-   }else if(event!="SIGNED_OUT"){
-     currentUser=null;
-     showAuth("Entre ou crie sua conta para usar a sincronização.");
-   }else{
-     currentUser=null;
-     showAuth("Você saiu da conta.");
-   }
- });
- try{
-   const {data:{session}}=await supabaseClient.auth.getSession();
-   if(session){currentUser=session.user;showApp();await cloudLoad(true);startRealtime();}
-   else showAuth("Entre ou crie sua conta para usar a sincronização.");
- }catch(e){
-   console.error("Falha ao restaurar sessão:",e);
-   showAuth("Não foi possível restaurar a sessão. Entre novamente.");
- }
+ // Use the browser's native persistent storage. This is the most reliable option
+ // for Chrome mobile and avoids replacing Supabase's storage adapter.
+ supabaseClient=window.supabase.createClient(window.SUPABASE_CONFIG.url,window.SUPABASE_CONFIG.anonKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storage:window.localStorage,storageKey:"meus_gastos_supabase_auth"}});
+ const {data:{session}}=await supabaseClient.auth.getSession();
+ if(session){currentUser=session.user;showApp();await cloudLoad(true);startRealtime();}
+ else showAuth("Entre ou crie sua conta para usar a sincronização.");
+ supabaseClient.auth.onAuthStateChange(async(_event,session)=>{if(session){currentUser=session.user;showApp();await cloudLoad(true);startRealtime()}else{currentUser=null;showAuth("Você saiu da conta.")}});
 }
 
 function render(){let all=E.filter(x=>x.date.slice(0,7)==M).sort((a,b)=>b.created-a.created),tot=all.reduce((s,x)=>s+x.value,0),fix=all.filter(x=>x.type=="fixed").reduce((s,x)=>s+x.value,0);let L=all.filter(x=>(typeFilter=="all"||x.type==typeFilter)&&(categoryFilter=="all"||x.category==categoryFilter));$("monthBtn").textContent=ml(M);$("total").textContent=money(tot);$("fixed").textContent=money(fix);$("variable").textContent=money(tot-fix);
