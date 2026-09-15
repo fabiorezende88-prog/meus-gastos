@@ -1,4 +1,4 @@
--- MEUS GASTOS - configuração do banco Supabase
+-- CONTIVA - configuração do banco Supabase
 -- Execute este arquivo no SQL Editor do seu projeto Supabase.
 
 create extension if not exists pgcrypto;
