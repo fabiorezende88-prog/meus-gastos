@@ -65,33 +65,26 @@ function showAuth(msg=""){ $("authScreen").classList.remove("hidden");$("appShel
 function showApp(){$("authScreen").classList.add("hidden");$("appShell").classList.remove("hidden")}
 async function initCloud(){
  if(!configured()){showAuth("A sincronização ainda não está configurada. Abra o arquivo config.js e coloque a URL e a chave anon do seu projeto Supabase.");return}
- supabaseClient=window.supabase.createClient(window.SUPABASE_CONFIG.url,window.SUPABASE_CONFIG.anonKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:"pkce",storage:window.localStorage}});
+ const authStorage={
+  async getItem(key){
+    try{const v=window.localStorage.getItem(key);if(v)return v}catch(e){}
+    try{const db=await new Promise((resolve,reject)=>{const r=indexedDB.open("meus_gastos_auth",1);r.onupgradeneeded=()=>r.result.createObjectStore("kv");r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)});const v=await new Promise((resolve,reject)=>{const t=db.transaction("kv","readonly");const r=t.objectStore("kv").get(key);r.onsuccess=()=>resolve(r.result||null);r.onerror=()=>reject(r.error)});db.close();if(v){try{window.localStorage.setItem(key,v)}catch(e){}return v}}catch(e){}
+    return null;
+  },
+  async setItem(key,value){
+    try{window.localStorage.setItem(key,value)}catch(e){}
+    try{const db=await new Promise((resolve,reject)=>{const r=indexedDB.open("meus_gastos_auth",1);r.onupgradeneeded=()=>r.result.createObjectStore("kv");r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)});await new Promise((resolve,reject)=>{const t=db.transaction("kv","readwrite");t.objectStore("kv").put(value,key);t.oncomplete=resolve;t.onerror=()=>reject(t.error)});db.close()}catch(e){}
+  },
+  async removeItem(key){
+    try{window.localStorage.removeItem(key)}catch(e){}
+    try{const db=await new Promise((resolve,reject)=>{const r=indexedDB.open("meus_gastos_auth",1);r.onupgradeneeded=()=>r.result.createObjectStore("kv");r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)});await new Promise((resolve,reject)=>{const t=db.transaction("kv","readwrite");t.objectStore("kv").delete(key);t.oncomplete=resolve;t.onerror=()=>reject(t.error)});db.close()}catch(e){}
+  }
+};
+supabaseClient=window.supabase.createClient(window.SUPABASE_CONFIG.url,window.SUPABASE_CONFIG.anonKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storage:authStorage,storageKey:"meus_gastos_supabase_auth"}});
  const {data:{session}}=await supabaseClient.auth.getSession();
  if(session){currentUser=session.user;showApp();await cloudLoad(true);startRealtime();}
  else showAuth("Entre ou crie sua conta para usar a sincronização.");
- supabaseClient.auth.onAuthStateChange((_event,session)=>{
-   if(session){
-     currentUser=session.user;
-     showApp();
-     // Não aguarda tarefas de nuvem dentro do callback de autenticação.
-     // Isso evita corrida entre a restauração da sessão e o carregamento dos dados.
-     Promise.resolve().then(()=>cloudLoad(true)).then(()=>startRealtime());
-   }else{
-     currentUser=null;
-     showAuth("Você saiu da conta.");
-   }
- });
- // Revalida a sessão quando o app volta ao primeiro plano (especialmente útil no iPhone/PWA).
- window.addEventListener("pageshow",async()=>{
-   if(!supabaseClient)return;
-   const {data}=await supabaseClient.auth.getSession();
-   if(data.session && !currentUser){
-     currentUser=data.session.user;
-     showApp();
-     await cloudLoad(true);
-     startRealtime();
-   }
- });
+ supabaseClient.auth.onAuthStateChange(async(_event,session)=>{if(session){currentUser=session.user;showApp();await cloudLoad(true);startRealtime()}else{currentUser=null;showAuth("Você saiu da conta.")}});
 }
 function render(){let all=E.filter(x=>x.date.slice(0,7)==M).sort((a,b)=>b.created-a.created),tot=all.reduce((s,x)=>s+x.value,0),fix=all.filter(x=>x.type=="fixed").reduce((s,x)=>s+x.value,0);let L=all.filter(x=>(typeFilter=="all"||x.type==typeFilter)&&(categoryFilter=="all"||x.category==categoryFilter));$("monthBtn").textContent=ml(M);$("total").textContent=money(tot);$("fixed").textContent=money(fix);$("variable").textContent=money(tot-fix);
 $("list").innerHTML=L.length?L.map(x=>`<div class="expense"><div class="icon">${iconFor(x.category)}</div><div class="main"><b>${esc(x.description||x.category.slice(2))}</b><span>${x.type=="fixed"?"Fixa":"Variável"} · ${br(x.date)}</span></div><div class="amount">${money(x.value)}<button type="button" class="edit" onclick="edit('${x.id}')">Editar</button><button class="delete" onclick="del('${x.id}')">Excluir</button></div></div>`).join(""):`<div class="empty">Nenhuma despesa neste mês.<br>Toque em <b>+ GASTO</b> para começar.</div>`;
