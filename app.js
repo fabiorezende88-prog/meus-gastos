@@ -1,5 +1,5 @@
 const K="meus_gastos_v3",BK="meus_gastos_orcamento",CBK="meus_gastos_orcamento_categoria";
-let supabaseClient=null,currentUser=null,cloudBusy=false,remoteTimer=null,cloudLoadSeq=0;let E=JSON.parse(localStorage.getItem(K)||"[]"),B=JSON.parse(localStorage.getItem(BK)||"{}"),CB=JSON.parse(localStorage.getItem(CBK)||"{}"),M=new Date().toISOString().slice(0,7),T="variable",C="🍔 Alimentação",editingId=null,typeFilter="all",categoryFilter="all";
+let supabaseClient=null,currentUser=null,cloudBusy=false,remoteTimer=null;let E=JSON.parse(localStorage.getItem(K)||"[]"),B=JSON.parse(localStorage.getItem(BK)||"{}"),CB=JSON.parse(localStorage.getItem(CBK)||"{}"),M=new Date().toISOString().slice(0,7),T="variable",C="🍔 Alimentação",editingId=null,typeFilter="all",categoryFilter="all";
 const cats={variable:["🍔 Alimentação","🛒 Mercado","⛽ Transporte","🎮 Lazer","👕 Roupas","💊 Farmácia","🐶 Pet","📦 Outros"],fixed:["🏠 Moradia","⚡ Contas","🌐 Internet","📱 Celular","🎓 Faculdade","🚗 Financiamento","🛡️ Seguro","📺 Assinaturas"]},
 iconSvg={
 "Alimentação":'<path d="M7 3v7M10 3v7M7 6h3M8.5 10v11M17 3v8a3 3 0 0 0 3 3h0V3M20 14v7"/>',
@@ -34,7 +34,7 @@ async function cloudUpsertAll(){if(!supabaseClient||!currentUser||cloudBusy)retu
  if(cb.length){const {error}=await supabaseClient.from("category_budgets").upsert(cb,{onConflict:"user_id,month,category"});if(error)throw error}
  syncText("Sincronizado");
 }catch(e){console.error(e);syncText("Erro ao sincronizar");alert("Não foi possível sincronizar agora. Verifique a conexão.");}finally{cloudBusy=false}}
-async function cloudLoad(mergeLocal=false){if(!supabaseClient||!currentUser)return;const loadSeq=++cloudLoadSeq;syncText("Carregando dados…");try{const uid=currentUser.id;
+async function cloudLoad(mergeLocal=false,retry=true){if(!supabaseClient||!currentUser)return;syncText("Carregando dados…");try{const uid=currentUser.id;
  const [{data:ex,error:e1},{data:bu,error:e2},{data:cb,error:e3}]=await Promise.all([
   supabaseClient.from("expenses").select("id,amount,type,category,description,expense_date,created_at").eq("user_id",uid),
   supabaseClient.from("budgets").select("month,amount").eq("user_id",uid),
@@ -52,13 +52,28 @@ async function cloudLoad(mergeLocal=false){if(!supabaseClient||!currentUser)retu
    if(cbRows.length){const {error}=await supabaseClient.from("category_budgets").upsert(cbRows,{onConflict:"user_id,month,category"});if(error)throw error}
    if(localOnly.length||budgetRows.length||cbRows.length){return cloudLoad(false)}
  }
- if(loadSeq!==cloudLoadSeq)return;
  E=(ex||[]).map(x=>({id:x.id,value:Number(x.amount),type:x.type,category:x.category,description:x.description||"",date:x.expense_date,created:Number(x.created_at||Date.now())}));
  B={};(bu||[]).forEach(x=>B[x.month]=Number(x.amount));
  CB={};(cb||[]).forEach(x=>{(CB[x.month]||(CB[x.month]={}))[x.category]=Number(x.amount)});
  save();render();syncText("Sincronizado");
- }catch(e){console.error(e);syncText("Erro ao carregar dados");alert("Não foi possível carregar seus dados da nuvem. Confira o Supabase e as políticas de acesso.")}}
-async function deleteCloudExpense(id){if(!supabaseClient||!currentUser)return null;const {error}=await supabaseClient.from("expenses").delete().eq("id",id).eq("user_id",currentUser.id);if(error){console.error(error);return error}return null}
+ }catch(e){
+   console.error("cloudLoad:",e);
+   // Em iPhone/Android, a sessão persistida pode precisar ser renovada ao abrir o PWA.
+   // Tenta renovar a sessão uma vez antes de mostrar erro ao usuário.
+   if(retry&&supabaseClient&&currentUser){
+     try{
+       const rr=await supabaseClient.auth.refreshSession();
+       const ns=rr.data&&rr.data.session;
+       if(ns){currentUser=ns.user;try{localStorage.setItem("meus_gastos_manual_session",JSON.stringify({access_token:ns.access_token,refresh_token:ns.refresh_token}))}catch(_){}}
+       if(ns)return cloudLoad(mergeLocal,false);
+     }catch(_){ }
+   }
+   syncText("Erro ao carregar dados");
+   // Mantém os dados locais na tela quando o PWA móvel estiver sem sessão/rede.
+   render();
+   if(retry)alert("Não foi possível carregar seus dados da nuvem agora. Seus dados locais foram mantidos. Verifique a conexão e tente novamente.");
+ }}
+async function deleteCloudExpense(id){if(!supabaseClient||!currentUser)return;const {error}=await supabaseClient.from("expenses").delete().eq("id",id).eq("user_id",currentUser.id);if(error)console.error(error)}
 async function deleteCloudMonth(month){if(!supabaseClient||!currentUser)return;await supabaseClient.from("expenses").delete().eq("user_id",currentUser.id).gte("expense_date",month+"-01").lt("expense_date",nextMonth(month)+"-01");await supabaseClient.from("budgets").delete().eq("user_id",currentUser.id).eq("month",month);await supabaseClient.from("category_budgets").delete().eq("user_id",currentUser.id).eq("month",month)}
 function nextMonth(m){const d=new Date(m+"-01T12:00");d.setMonth(d.getMonth()+1);return d.toISOString().slice(0,7)}
 function startRealtime(){if(!supabaseClient||!currentUser)return;supabaseClient.channel("meus-gastos-sync").on("postgres_changes",{event:"*",schema:"public",table:"expenses",filter:"user_id=eq."+currentUser.id},()=>cloudLoad(false)).on("postgres_changes",{event:"*",schema:"public",table:"budgets",filter:"user_id=eq."+currentUser.id},()=>cloudLoad(false)).on("postgres_changes",{event:"*",schema:"public",table:"category_budgets",filter:"user_id=eq."+currentUser.id},()=>cloudLoad(false)).subscribe()}
@@ -170,15 +185,7 @@ function renderReport(){
 }
 function renderCats(){$("categoryButtons").innerHTML=cats[T].map(c=>`<button class="${c==C?"selected":""}" onclick="choose('${c.replace(/'/g,"\\'")}')">${iconFor(c)}<span>${c.replace(/^[^ ]+\s/,"")}</span></button>`).join("")}
 function choose(c){C=c;renderCats()}function br(d){return new Date(d+"T12:00").toLocaleDateString("pt-BR")}function esc(s){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
-async function del(id){
- if(!confirm("Excluir esta despesa?"))return;
- if(supabaseClient&&currentUser){
-  const error=await deleteCloudExpense(id);
-  if(error){alert("Não foi possível excluir o gasto da nuvem. Verifique sua conexão e as políticas do Supabase.");return;}
- }
- E=E.filter(x=>x.id!=id);save();render();
- if(supabaseClient&&currentUser){setTimeout(()=>cloudLoad(false),250)}
-}
+function del(id){if(confirm("Excluir esta despesa?")){E=E.filter(x=>x.id!=id);save();deleteCloudExpense(id).then(()=>cloudLoad(false))}}
 function openNew(){editingId=null;$("modalTitle").textContent="Novo gasto";$("save").textContent="SALVAR GASTO";$("value").value="";$("desc").value="";T="variable";document.querySelectorAll(".toggle button").forEach(x=>x.classList.toggle("on",x.dataset.t==T));C=cats[T][0];$("modal").classList.remove("hidden");renderCats();$("value").focus()}
 function edit(id){let x=E.find(e=>e.id==id);if(!x)return;editingId=id;T=x.type;C=x.category;$("modalTitle").textContent="Editar gasto";$("save").textContent="SALVAR ALTERAÇÕES";$("value").value=String(x.value).replace(".",",");$("desc").value=x.description||"";document.querySelectorAll(".toggle button").forEach(b=>b.classList.toggle("on",b.dataset.t==T));$("modal").classList.remove("hidden");renderCats();$("value").focus()}
 $("addBtn").onclick=openNew;$("close").onclick=()=>{$("modal").classList.add("hidden");editingId=null};
