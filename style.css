@@ -118,7 +118,3 @@ header button{border:1px solid rgba(115,220,199,.22);background:rgba(18,73,68,.7
   .cat-budget-name{font-size:14px}
   .account-card{padding:16px}
 }
-
-/* Contiva budget layout */
-.budget-main-row{display:flex;justify-content:space-between;align-items:flex-end;min-height:42px}.budget-available{display:flex;flex-direction:column;align-items:flex-start}.budget-available span{display:block!important;font-size:12px!important;color:#5b7773!important}.budget-available b{display:block;font-size:19px!important;color:#08312f!important;margin-top:3px}.budget-status-hidden{display:none!important}
-@media(max-width:520px){.budget-main-row{min-height:40px}.budget-available span{font-size:8px!important}.budget-available b{font-size:13px!important}}
