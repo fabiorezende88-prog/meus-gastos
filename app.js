@@ -40,6 +40,6 @@ $("budgetSave").onclick=()=>{let v=pm($("budgetValue").value);if(!v||v<=0)return
 $("monthBtn").onclick=()=>{$("months").classList.remove("hidden");$("monthList").innerHTML=Array.from({length:12},(_,i)=>{let d=new Date();d.setDate(1);d.setMonth(d.getMonth()-i);let m=d.toISOString().slice(0,7);return `<button class="monthOpt ${m==M?"sel":""}" onclick="selMonth('${m}')">${ml(m)}</button>`}).join("")};$("monthsClose").onclick=()=>$("months").classList.add("hidden");
 function selMonth(m){M=m;$("months").classList.add("hidden");render()}
 function populateCategoryFilter(){let vals=[...new Set(E.filter(x=>x.date.slice(0,7)==M).map(x=>x.category))];$("categoryFilter").innerHTML='<option value="all">Todas as categorias</option>'+vals.map(c=>`<option value="${esc(c)}">${esc(c.replace(/^[^ ]+\s/,""))}</option>`).join("");$("categoryFilter").value=vals.includes(categoryFilter)?categoryFilter:"all";categoryFilter=$("categoryFilter").value}
-$("typeFilter").onchange=()=>{typeFilter=$("typeFilter").value;render()};
+document.querySelectorAll(".filter-pill").forEach(b=>b.onclick=()=>{typeFilter=b.dataset.type;document.querySelectorAll(".filter-pill").forEach(x=>x.classList.remove("active"));b.classList.add("active");render()});
 $("categoryFilter").onchange=()=>{categoryFilter=$("categoryFilter").value;render()};
 const oldRender=render;render=function(){populateCategoryFilter();oldRender()};render();
