@@ -65,7 +65,7 @@ function showAuth(msg=""){ $("authScreen").classList.remove("hidden");$("appShel
 function showApp(){$("authScreen").classList.add("hidden");$("appShell").classList.remove("hidden")}
 async function initCloud(){
  if(!configured()){showAuth("A sincronização ainda não está configurada. Abra o arquivo config.js e coloque a URL e a chave anon do seu projeto Supabase.");return}
- supabaseClient=window.supabase.createClient(window.SUPABASE_CONFIG.url,window.SUPABASE_CONFIG.anonKey);
+ supabaseClient=window.supabase.createClient(window.SUPABASE_CONFIG.url,window.SUPABASE_CONFIG.anonKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storage:window.localStorage,storageKey:"meus_gastos_supabase_auth"}});
  const {data:{session}}=await supabaseClient.auth.getSession();
  if(session){currentUser=session.user;showApp();await cloudLoad(true);startRealtime();}
  else showAuth("Entre ou crie sua conta para usar a sincronização.");
