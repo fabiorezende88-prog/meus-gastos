@@ -25,55 +25,38 @@ function render(){let all=E.filter(x=>x.date.slice(0,7)==M).sort((a,b)=>b.create
 $("list").innerHTML=L.length?L.map(x=>`<div class="expense"><div class="icon">${iconFor(x.category)}</div><div class="main"><b>${esc(x.description||x.category.slice(2))}</b><span>${x.type=="fixed"?"Fixa":"Variável"} · ${br(x.date)}</span></div><div class="amount">${money(x.value)}<button type="button" class="edit" onclick="edit('${x.id}')">Editar</button><button class="delete" onclick="del('${x.id}')">Excluir</button></div></div>`).join(""):`<div class="empty">Nenhuma despesa neste mês.<br>Toque em <b>+ GASTO</b> para começar.</div>`;
 let b=B[M]||0,avail=b-tot;$("spent").textContent=money(tot);$("available").textContent=b?(avail>=0?"Disponível: "+money(avail):"Acima do orçamento: "+money(-avail)):"Sem orçamento";$("progress").style.width=(b?Math.min(tot/b*100,100):0)+"%";$("progress").classList.toggle("danger",b&&tot>b);
 let s={};L.forEach(x=>s[x.category]=(s[x.category]||0)+x.value);let a=Object.entries(s).sort((x,y)=>y[1]-x[1]),mx=a[0]?.[1]||1;$("cats").innerHTML=a.length?a.map(([c,v])=>`<div class="cat"><div class="icon">${iconFor(c)}</div><div class="name">${esc(c.slice(2))}<div class="bar"><i style="width:${v/mx*100}%"></i></div></div><b>${money(v)}</b></div>`).join(""):`<div class="empty">Sem gastos neste mês.</div>`;
-}
+// Relatório mensal
+let d=new Date(M+"-01T12:00"),ms=[];for(let i=5;i>=0;i--){let q=new Date(d.getFullYear(),d.getMonth()-i,1);ms.push(q.toISOString().slice(0,7))}let vs=ms.map(m=>E.filter(x=>x.date.slice(0,7)==m).reduce((s,x)=>s+x.value,0)),max=Math.max(...vs,1);$("chart").innerHTML=ms.map((m,i)=>`<div class="barcol"><i style="height:${vs[i]/max*120}px" title="${money(vs[i])}"></i><span>${new Date(m+"-01T12:00").toLocaleDateString("pt-BR",{month:"short"}).replace(".","")}</span></div>`).join("")}
 
-// Orçamento por categoria
+// Relatório mensal
+
+function allCategories(){return [...cats.variable,...cats.fixed]}
+function categoryLabel(c){return String(c).replace(/^[^ ]+\s/,"")}
 function renderCategoryBudgets(){
-  const monthBudgets=CB[M]||{};
+  const box=$("categoryBudgets");
+  if(!box)return;
   const monthExpenses=E.filter(x=>x.date.slice(0,7)==M);
   const spent={};
   monthExpenses.forEach(x=>spent[x.category]=(spent[x.category]||0)+Number(x.value||0));
-  const keys=[...new Set([...Object.keys(spent),...Object.keys(monthBudgets)])]
-    .sort((a,b)=>(spent[b]||0)-(spent[a]||0));
-  const box=$("categoryBudgets");
-  if(!keys.length){
-    box.innerHTML='<div class="empty">Defina um orçamento por categoria ou lance um gasto para começar.</div>';
-    return;
-  }
-  box.innerHTML=keys.map(c=>{
-    const s=spent[c]||0, budget=Number(monthBudgets[c]||0), remaining=budget-s;
-    const pct=budget?Math.min(s/budget*100,100):0;
-    const status=!budget?"Sem limite":remaining<0?"Ultrapassado":remaining<=budget*.2?"Atenção":"Dentro do limite";
-    const cls=!budget?"no-budget":remaining<0?"over":"ok";
-    return `<div class="cat-budget">
-      <div class="cat-budget-head">
-        <div class="cat-budget-name"><span class="mini-icon">${iconFor(c)}</span><b>${esc(c.replace(/^[^ ]+\s/,""))}</b></div>
-        <button type="button" onclick="defineCategoryBudget('${esc(c).replace(/'/g,"\\'")}')">Definir</button>
-      </div>
-      <div class="cat-budget-values"><span>Gasto: <b>${money(s)}</b></span><span>${budget?`Limite: <b>${money(budget)}</b>`:"Sem limite"}</span></div>
-      ${budget?`<div class="cat-budget-bar"><i class="${cls}" style="width:${pct}%"></i></div>
-      <div class="cat-budget-foot"><span class="${cls}">${status}</span><b class="${cls}">${remaining>=0?`Restante: ${money(remaining)}`:`Excesso: ${money(-remaining)}`}</b></div>`:
-      `<div class="cat-budget-foot"><span class="no-budget">Defina um limite para acompanhar</span><span></span></div>`}
-    </div>`;
+  const limits=CB[M]||{};
+  const categories=[...new Set([...allCategories(),...Object.keys(limits)])];
+  box.innerHTML=categories.map(c=>{
+    const s=spent[c]||0, b=Number(limits[c]||0), r=b-s;
+    const pct=b?Math.min((s/b)*100,100):0;
+    const state=!b?"none":r<0?"over":r<=b*.2?"warn":"ok";
+    const text=!b?"Sem limite":r<0?"Ultrapassado":r<=b*.2?"Atenção":"Dentro do limite";
+    return `<div class="cat-budget"><div class="cat-budget-head"><div class="cat-budget-name"><span class="mini-icon">${iconFor(c)}</span><span>${esc(categoryLabel(c))}</span></div><button type="button" class="cat-budget-edit" onclick="openCategoryBudget('${esc(c).replace(/'/g,"\\'")}')">${b?"Alterar":"Definir"}</button></div><div class="cat-budget-values"><span>Gasto: <b>${money(s)}</b></span><span>${b?`Limite: <b>${money(b)}</b>`:"Nenhum limite definido"}</span></div>${b?`<div class="cat-budget-bar"><i class="${state}" style="width:${pct}%"></i></div><div class="cat-budget-foot"><span class="${state}">${text}</span><b class="${state}">${r>=0?`Restante: ${money(r)}`:`Excesso: ${money(-r)}`}</b></div>`:`<div class="cat-budget-foot"><span class="none">Defina um limite para acompanhar</span><span></span></div>`}</div>`;
   }).join("");
 }
-function defineCategoryBudget(category){
+function openCategoryBudget(category){
+  $("categoryBudgetTitle").textContent="Orçamento — "+categoryLabel(category);
+  $("categoryBudgetCategory").value=category;
   const current=(CB[M]&&CB[M][category])||"";
-  const label=category.replace(/^[^ ]+\s/,"");
-  const answer=prompt(`Orçamento para ${label} em ${ml(M)}:`,current?String(current).replace(".",","):"");
-  if(answer===null)return;
-  const v=pm(answer);
-  if(!v||v<=0){
-    alert("Digite um orçamento válido.");
-    return;
-  }
-  if(!CB[M])CB[M]={};
-  CB[M][category]=v;
-  save();
-  render();
+  $("categoryBudgetValue").value=current?String(current).replace(".",","):"";
+  $("categoryBudgetModal").classList.remove("hidden");
+  setTimeout(()=>$("categoryBudgetValue").focus(),50);
 }
 
-// Relatório mensal
 function renderReport(){
   const current=E.filter(x=>x.date.slice(0,7)==M);
   const total=current.reduce((s,x)=>s+x.value,0);
@@ -97,8 +80,6 @@ function renderReport(){
   else if(prevTotal===0) { comp.textContent="Novo gasto neste mês"; comp.className="negative"; }
   else { const pct=((total-prevTotal)/prevTotal)*100; const arrow=pct>0?"↑ ":pct<0?"↓ ":""; comp.textContent=arrow+Math.abs(pct).toFixed(1).replace(".",",")+"%"; comp.className=pct>0?"negative":pct<0?"positive":""; }
 }
-
-let d=new Date(M+"-01T12:00"),ms=[];for(let i=5;i>=0;i--){let q=new Date(d.getFullYear(),d.getMonth()-i,1);ms.push(q.toISOString().slice(0,7))}let vs=ms.map(m=>E.filter(x=>x.date.slice(0,7)==m).reduce((s,x)=>s+x.value,0)),max=Math.max(...vs,1);$("chart").innerHTML=ms.map((m,i)=>`<div class="barcol"><i style="height:${vs[i]/max*120}px" title="${money(vs[i])}"></i><span>${new Date(m+"-01T12:00").toLocaleDateString("pt-BR",{month:"short"}).replace(".","")}</span></div>`).join("");
 function renderCats(){$("categoryButtons").innerHTML=cats[T].map(c=>`<button class="${c==C?"selected":""}" onclick="choose('${c.replace(/'/g,"\\'")}')">${iconFor(c)}<span>${c.replace(/^[^ ]+\s/,"")}</span></button>`).join("")}
 function choose(c){C=c;renderCats()}function br(d){return new Date(d+"T12:00").toLocaleDateString("pt-BR")}function esc(s){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
 function del(id){if(confirm("Excluir esta despesa?")){E=E.filter(x=>x.id!=id);save();render()}}
@@ -116,3 +97,15 @@ function populateCategoryFilter(){let vals=[...new Set(E.filter(x=>x.date.slice(
 document.querySelectorAll(".filter-pill").forEach(b=>b.onclick=()=>{typeFilter=b.dataset.type;document.querySelectorAll(".filter-pill").forEach(x=>x.classList.remove("active"));b.classList.add("active");render()});
 $("categoryFilter").onchange=()=>{categoryFilter=$("categoryFilter").value;render()};
 const oldRender=render;render=function(){populateCategoryFilter();oldRender();renderReport();renderCategoryBudgets()};render();
+$("categoryBudgetClose").onclick=()=>$("categoryBudgetModal").classList.add("hidden");
+$("categoryBudgetCancel").onclick=()=>$("categoryBudgetModal").classList.add("hidden");
+$("categoryBudgetSave").onclick=()=>{
+  const category=$("categoryBudgetCategory").value;
+  const v=pm($("categoryBudgetValue").value);
+  if(!v||v<=0){alert("Digite um orçamento válido.");return;}
+  if(!CB[M])CB[M]={};
+  CB[M][category]=v;
+  save();
+  $("categoryBudgetModal").classList.add("hidden");
+  render();
+};
