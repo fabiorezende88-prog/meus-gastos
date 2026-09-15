@@ -63,21 +63,41 @@ function nextMonth(m){const d=new Date(m+"-01T12:00");d.setMonth(d.getMonth()+1)
 function startRealtime(){if(!supabaseClient||!currentUser)return;supabaseClient.channel("meus-gastos-sync").on("postgres_changes",{event:"*",schema:"public",table:"expenses",filter:"user_id=eq."+currentUser.id},()=>cloudLoad(false)).on("postgres_changes",{event:"*",schema:"public",table:"budgets",filter:"user_id=eq."+currentUser.id},()=>cloudLoad(false)).on("postgres_changes",{event:"*",schema:"public",table:"category_budgets",filter:"user_id=eq."+currentUser.id},()=>cloudLoad(false)).subscribe()}
 function showAuth(msg=""){ $("authScreen").classList.remove("hidden");$("appShell").classList.add("hidden");$("authStatus").textContent=msg}
 function showApp(){$("authScreen").classList.add("hidden");$("appShell").classList.remove("hidden")}
-function idbOpen(){return new Promise((resolve,reject)=>{try{const r=indexedDB.open("meus_gastos_auth_backup",1);r.onupgradeneeded=()=>{if(!r.result.objectStoreNames.contains("kv"))r.result.createObjectStore("kv")};r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)}catch(e){reject(e)}})}
-async function idbGet(key){try{const db=await idbOpen();const v=await new Promise((res,rej)=>{const t=db.transaction("kv","readonly"),r=t.objectStore("kv").get(key);r.onsuccess=()=>res(r.result||null);r.onerror=()=>rej(r.error)});db.close();return v}catch(e){return null}}
-async function idbSet(key,value){try{const db=await idbOpen();await new Promise((res,rej)=>{const t=db.transaction("kv","readwrite");t.objectStore("kv").put(value,key);t.oncomplete=res;t.onerror=()=>rej(t.error)});db.close()}catch(e){}}
-async function idbRemove(key){try{const db=await idbOpen();await new Promise((res,rej)=>{const t=db.transaction("kv","readwrite");t.objectStore("kv").delete(key);t.oncomplete=res;t.onerror=()=>rej(t.error)});db.close()}catch(e){}}
 async function initCloud(){
  if(!configured()){showAuth("A sincronização ainda não está configurada. Abra o arquivo config.js e coloque a URL e a chave anon do seu projeto Supabase.");return}
- // Use Supabase's native synchronous localStorage adapter. This is the most reliable path on iPhone/Safari.
- supabaseClient=window.supabase.createClient(window.SUPABASE_CONFIG.url,window.SUPABASE_CONFIG.anonKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storage:window.localStorage,storageKey:"meus_gastos_supabase_auth"}});
- const backupKey="meus_gastos_supabase_session_backup";
- let {data:{session}}=await supabaseClient.auth.getSession();
- // If iOS did not return the localStorage session, recover it from IndexedDB and restore it explicitly.
- if(!session){const raw=await idbGet(backupKey);if(raw){try{const b=typeof raw==="string"?JSON.parse(raw):raw;if(b?.access_token&&b?.refresh_token){const r=await supabaseClient.auth.setSession({access_token:b.access_token,refresh_token:b.refresh_token});session=r.data?.session||null}}catch(e){console.warn("Falha ao restaurar sessão",e)}}}
- if(session){currentUser=session.user;showApp();await idbSet(backupKey,JSON.stringify({access_token:session.access_token,refresh_token:session.refresh_token}));await cloudLoad(true);startRealtime();}
- else showAuth("Entre ou crie sua conta para usar a sincronização.");
- supabaseClient.auth.onAuthStateChange(async(_event,session)=>{if(session){currentUser=session.user;showApp();await idbSet(backupKey,JSON.stringify({access_token:session.access_token,refresh_token:session.refresh_token}));await cloudLoad(true);startRealtime()}else{currentUser=null;await idbRemove(backupKey);showAuth("Você saiu da conta.")}});
+ // Use o armazenamento nativo do navegador. É o caminho mais compatível
+ // com Chrome mobile, Chrome desktop, Safari e PWAs.
+ supabaseClient=window.supabase.createClient(window.SUPABASE_CONFIG.url,window.SUPABASE_CONFIG.anonKey,{auth:{
+   persistSession:true,
+   autoRefreshToken:true,
+   detectSessionInUrl:true,
+   storage:window.localStorage,
+   storageKey:"meus_gastos_supabase_auth",
+   flowType:"pkce"
+ }});
+ // O listener é registrado antes da leitura inicial para não perder
+ // a sessão restaurada pelo Supabase em navegadores móveis.
+ supabaseClient.auth.onAuthStateChange((event,session)=>{
+   if(session){
+     currentUser=session.user;
+     showApp();
+     setTimeout(()=>{cloudLoad(true);startRealtime()},0);
+   }else if(event!="SIGNED_OUT"){
+     currentUser=null;
+     showAuth("Entre ou crie sua conta para usar a sincronização.");
+   }else{
+     currentUser=null;
+     showAuth("Você saiu da conta.");
+   }
+ });
+ try{
+   const {data:{session}}=await supabaseClient.auth.getSession();
+   if(session){currentUser=session.user;showApp();await cloudLoad(true);startRealtime();}
+   else showAuth("Entre ou crie sua conta para usar a sincronização.");
+ }catch(e){
+   console.error("Falha ao restaurar sessão:",e);
+   showAuth("Não foi possível restaurar a sessão. Entre novamente.");
+ }
 }
 
 function render(){let all=E.filter(x=>x.date.slice(0,7)==M).sort((a,b)=>b.created-a.created),tot=all.reduce((s,x)=>s+x.value,0),fix=all.filter(x=>x.type=="fixed").reduce((s,x)=>s+x.value,0);let L=all.filter(x=>(typeFilter=="all"||x.type==typeFilter)&&(categoryFilter=="all"||x.category==categoryFilter));$("monthBtn").textContent=ml(M);$("total").textContent=money(tot);$("fixed").textContent=money(fix);$("variable").textContent=money(tot-fix);
