@@ -14,6 +14,11 @@
 <div class="comparison"><span id="comparisonLabel">Comparação com o mês anterior</span><strong id="comparisonValue">—</strong></div>
 <div class="available-report"><span>Saldo do orçamento</span><b id="reportAvailable">—</b></div>
 </section>
+<section class="card category-budget-card">
+  <div class="row"><h2>Orçamento por categoria</h2><span class="report-month">Mês selecionado</span></div>
+  <p class="category-budget-help">Defina limites para cada categoria e acompanhe quanto ainda pode gastar.</p>
+  <div id="categoryBudgets"></div>
+</section>
 <section class="card"><h2>Últimos 6 meses</h2><div id="chart" class="chart"></div></section>
 </div>
 <div class="modal hidden" id="modal"><div class="sheet"><div class="row"><h2 id="modalTitle">Novo gasto</h2><button class="close" id="close">×</button></div>
@@ -23,4 +28,4 @@
 <label>Descrição <em>(opcional)</em></label><input id="desc" class="text" placeholder="Ex.: Restaurante"><button class="save" id="save">SALVAR GASTO</button></div></div>
 <div class="modal hidden" id="budgetModal"><div class="sheet"><div class="row"><h2>Orçamento mensal</h2><button class="close" id="budgetClose">×</button></div><p>Defina o limite de gastos do mês selecionado.</p><input id="budgetValue" class="value" inputmode="decimal" placeholder="R$ 5.000,00"><button class="save" id="budgetSave">SALVAR ORÇAMENTO</button></div></div>
 <div class="modal hidden" id="months"><div class="sheet"><div class="row"><h2>Escolher mês</h2><button class="close" id="monthsClose">×</button></div><div id="monthList"></div></div></div>
-<script src="app.js?v=12"></script></body></html>
+<script src="app.js?v=13"></script></body></html>

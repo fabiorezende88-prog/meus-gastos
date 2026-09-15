@@ -1,4 +1,4 @@
-const K="meus_gastos_v3",BK="meus_gastos_orcamento";let E=JSON.parse(localStorage.getItem(K)||"[]"),B=JSON.parse(localStorage.getItem(BK)||"{}"),M=new Date().toISOString().slice(0,7),T="variable",C="🍔 Alimentação",editingId=null,typeFilter="all",categoryFilter="all";
+const K="meus_gastos_v3",BK="meus_gastos_orcamento",CBK="meus_gastos_orcamento_categoria";let E=JSON.parse(localStorage.getItem(K)||"[]"),B=JSON.parse(localStorage.getItem(BK)||"{}"),CB=JSON.parse(localStorage.getItem(CBK)||"{}"),M=new Date().toISOString().slice(0,7),T="variable",C="🍔 Alimentação",editingId=null,typeFilter="all",categoryFilter="all";
 const cats={variable:["🍔 Alimentação","🛒 Mercado","⛽ Transporte","🎮 Lazer","👕 Roupas","💊 Farmácia","🐶 Pet","📦 Outros"],fixed:["🏠 Moradia","⚡ Contas","🌐 Internet","📱 Celular","🎓 Faculdade","🚗 Financiamento","🛡️ Seguro","📺 Assinaturas"]},
 iconSvg={
 "Alimentação":'<path d="M7 3v7M10 3v7M7 6h3M8.5 10v11M17 3v8a3 3 0 0 0 3 3h0V3M20 14v7"/>',
@@ -20,13 +20,57 @@ iconSvg={
 },
 iconFor=c=>{let n=String(c).replace(/^[^ ]+\s/,'');return `<svg class="catSvg" viewBox="0 0 24 24" aria-hidden="true">${iconSvg[n]||iconSvg["Outros"]}</svg>`},
 $=x=>document.getElementById(x),money=n=>new Intl.NumberFormat("pt-BR",{style:"currency",currency:"BRL"}).format(n),ml=m=>{let[a,b]=m.split("-");return new Date(+a,+b-1,1).toLocaleDateString("pt-BR",{month:"long",year:"numeric"})},pm=v=>parseFloat(v.replace(/[^\d,.-]/g,"").replace(/\./g,"").replace(",","."));
-function save(){localStorage.setItem(K,JSON.stringify(E));localStorage.setItem(BK,JSON.stringify(B))}
+function save(){localStorage.setItem(K,JSON.stringify(E));localStorage.setItem(BK,JSON.stringify(B));localStorage.setItem(CBK,JSON.stringify(CB))}
 function render(){let all=E.filter(x=>x.date.slice(0,7)==M).sort((a,b)=>b.created-a.created),tot=all.reduce((s,x)=>s+x.value,0),fix=all.filter(x=>x.type=="fixed").reduce((s,x)=>s+x.value,0);let L=all.filter(x=>(typeFilter=="all"||x.type==typeFilter)&&(categoryFilter=="all"||x.category==categoryFilter));$("monthBtn").textContent=ml(M);$("total").textContent=money(tot);$("fixed").textContent=money(fix);$("variable").textContent=money(tot-fix);
 $("list").innerHTML=L.length?L.map(x=>`<div class="expense"><div class="icon">${iconFor(x.category)}</div><div class="main"><b>${esc(x.description||x.category.slice(2))}</b><span>${x.type=="fixed"?"Fixa":"Variável"} · ${br(x.date)}</span></div><div class="amount">${money(x.value)}<button type="button" class="edit" onclick="edit('${x.id}')">Editar</button><button class="delete" onclick="del('${x.id}')">Excluir</button></div></div>`).join(""):`<div class="empty">Nenhuma despesa neste mês.<br>Toque em <b>+ GASTO</b> para começar.</div>`;
 let b=B[M]||0,avail=b-tot;$("spent").textContent=money(tot);$("available").textContent=b?(avail>=0?"Disponível: "+money(avail):"Acima do orçamento: "+money(-avail)):"Sem orçamento";$("progress").style.width=(b?Math.min(tot/b*100,100):0)+"%";$("progress").classList.toggle("danger",b&&tot>b);
 let s={};L.forEach(x=>s[x.category]=(s[x.category]||0)+x.value);let a=Object.entries(s).sort((x,y)=>y[1]-x[1]),mx=a[0]?.[1]||1;$("cats").innerHTML=a.length?a.map(([c,v])=>`<div class="cat"><div class="icon">${iconFor(c)}</div><div class="name">${esc(c.slice(2))}<div class="bar"><i style="width:${v/mx*100}%"></i></div></div><b>${money(v)}</b></div>`).join(""):`<div class="empty">Sem gastos neste mês.</div>`;
-// Relatório mensal
-let d=new Date(M+"-01T12:00"),ms=[];for(let i=5;i>=0;i--){let q=new Date(d.getFullYear(),d.getMonth()-i,1);ms.push(q.toISOString().slice(0,7))}let vs=ms.map(m=>E.filter(x=>x.date.slice(0,7)==m).reduce((s,x)=>s+x.value,0)),max=Math.max(...vs,1);$("chart").innerHTML=ms.map((m,i)=>`<div class="barcol"><i style="height:${vs[i]/max*120}px" title="${money(vs[i])}"></i><span>${new Date(m+"-01T12:00").toLocaleDateString("pt-BR",{month:"short"}).replace(".","")}</span></div>`).join("")}
+
+// Orçamento por categoria
+function renderCategoryBudgets(){
+  const monthBudgets=CB[M]||{};
+  const monthExpenses=E.filter(x=>x.date.slice(0,7)==M);
+  const spent={};
+  monthExpenses.forEach(x=>spent[x.category]=(spent[x.category]||0)+Number(x.value||0));
+  const keys=[...new Set([...Object.keys(spent),...Object.keys(monthBudgets)])]
+    .sort((a,b)=>(spent[b]||0)-(spent[a]||0));
+  const box=$("categoryBudgets");
+  if(!keys.length){
+    box.innerHTML='<div class="empty">Defina um orçamento por categoria ou lance um gasto para começar.</div>';
+    return;
+  }
+  box.innerHTML=keys.map(c=>{
+    const s=spent[c]||0, budget=Number(monthBudgets[c]||0), remaining=budget-s;
+    const pct=budget?Math.min(s/budget*100,100):0;
+    const status=!budget?"Sem limite":remaining<0?"Ultrapassado":remaining<=budget*.2?"Atenção":"Dentro do limite";
+    const cls=!budget?"no-budget":remaining<0?"over":"ok";
+    return `<div class="cat-budget">
+      <div class="cat-budget-head">
+        <div class="cat-budget-name"><span class="mini-icon">${iconFor(c)}</span><b>${esc(c.replace(/^[^ ]+\s/,""))}</b></div>
+        <button type="button" onclick="defineCategoryBudget('${esc(c).replace(/'/g,"\\'")}')">Definir</button>
+      </div>
+      <div class="cat-budget-values"><span>Gasto: <b>${money(s)}</b></span><span>${budget?`Limite: <b>${money(budget)}</b>`:"Sem limite"}</span></div>
+      ${budget?`<div class="cat-budget-bar"><i class="${cls}" style="width:${pct}%"></i></div>
+      <div class="cat-budget-foot"><span class="${cls}">${status}</span><b class="${cls}">${remaining>=0?`Restante: ${money(remaining)}`:`Excesso: ${money(-remaining)}`}</b></div>`:
+      `<div class="cat-budget-foot"><span class="no-budget">Defina um limite para acompanhar</span><span></span></div>`}
+    </div>`;
+  }).join("");
+}
+function defineCategoryBudget(category){
+  const current=(CB[M]&&CB[M][category])||"";
+  const label=category.replace(/^[^ ]+\s/,"");
+  const answer=prompt(`Orçamento para ${label} em ${ml(M)}:`,current?String(current).replace(".",","):"");
+  if(answer===null)return;
+  const v=pm(answer);
+  if(!v||v<=0){
+    alert("Digite um orçamento válido.");
+    return;
+  }
+  if(!CB[M])CB[M]={};
+  CB[M][category]=v;
+  save();
+  render();
+}
 
 // Relatório mensal
 function renderReport(){
@@ -52,6 +96,8 @@ function renderReport(){
   else if(prevTotal===0) { comp.textContent="Novo gasto neste mês"; comp.className="negative"; }
   else { const pct=((total-prevTotal)/prevTotal)*100; const arrow=pct>0?"↑ ":pct<0?"↓ ":""; comp.textContent=arrow+Math.abs(pct).toFixed(1).replace(".",",")+"%"; comp.className=pct>0?"negative":pct<0?"positive":""; }
 }
+
+let d=new Date(M+"-01T12:00"),ms=[];for(let i=5;i>=0;i--){let q=new Date(d.getFullYear(),d.getMonth()-i,1);ms.push(q.toISOString().slice(0,7))}let vs=ms.map(m=>E.filter(x=>x.date.slice(0,7)==m).reduce((s,x)=>s+x.value,0)),max=Math.max(...vs,1);$("chart").innerHTML=ms.map((m,i)=>`<div class="barcol"><i style="height:${vs[i]/max*120}px" title="${money(vs[i])}"></i><span>${new Date(m+"-01T12:00").toLocaleDateString("pt-BR",{month:"short"}).replace(".","")}</span></div>`).join("");renderCategoryBudgets()}
 function renderCats(){$("categoryButtons").innerHTML=cats[T].map(c=>`<button class="${c==C?"selected":""}" onclick="choose('${c.replace(/'/g,"\\'")}')">${iconFor(c)}<span>${c.replace(/^[^ ]+\s/,"")}</span></button>`).join("")}
 function choose(c){C=c;renderCats()}function br(d){return new Date(d+"T12:00").toLocaleDateString("pt-BR")}function esc(s){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
 function del(id){if(confirm("Excluir esta despesa?")){E=E.filter(x=>x.id!=id);save();render()}}

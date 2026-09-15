@@ -13,3 +13,21 @@
 .filter-title{font-size:10px;font-weight:900;letter-spacing:.6px;color:#6b7280;margin:10px 0 7px}.type-pills{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:8px}.filter-pill{border:1px solid #e5e7eb;background:#f3f4f6;color:#374151;border-radius:9px;padding:8px 4px;font-size:11px;font-weight:800;cursor:pointer}.filter-pill.active{background:#2563eb;color:white;border-color:#2563eb}#categoryFilter{width:100%;border:1px solid #e5e7eb;background:#f9fafb;border-radius:9px;padding:9px;color:#374151;font-size:11px;font-weight:700;outline:0;margin-bottom:4px}#categoryFilter:focus{border-color:#2563eb;background:white}
 
 .report-month{font-size:11px;color:#6b7280;text-transform:capitalize}.report-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}.report-grid>div{background:#f3f4f6;border-radius:12px;padding:11px}.report-grid span{display:block;font-size:11px;color:#6b7280}.report-grid b{display:block;font-size:15px;margin-top:4px}.comparison,.available-report{display:flex;justify-content:space-between;align-items:center;border-top:1px solid #eee;padding:12px 0 0;margin-top:12px;font-size:12px}.comparison strong{font-size:13px}.available-report{padding-bottom:0}.available-report b{font-size:13px}.positive{color:#16a34a}.negative{color:#ef4444}
+
+.category-budget-help{margin:0 0 8px;font-size:12px;color:#6b7280}
+.cat-budget{border-top:1px solid #eee;padding:12px 0}
+.cat-budget-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.cat-budget-head button{border:1px solid #e5e7eb!important;background:#f9fafb!important;border-radius:8px;padding:6px 9px!important;color:#2563eb!important;font-weight:800;font-size:11px!important}
+.cat-budget-name{display:flex;align-items:center;gap:8px;min-width:0}
+.mini-icon{width:34px;height:34px;border-radius:10px;background:#f3f4f6;display:grid;place-items:center;flex:0 0 34px}
+.mini-icon .catSvg{width:20px!important;height:20px!important}
+.cat-budget-values,.cat-budget-foot{display:flex;justify-content:space-between;gap:8px;font-size:11px;color:#6b7280;margin-top:7px}
+.cat-budget-values b{color:#111827}
+.cat-budget-bar{height:7px;background:#e5e7eb;border-radius:8px;overflow:hidden;margin-top:8px}
+.cat-budget-bar i{display:block;height:100%;background:#2563eb;border-radius:8px}
+.cat-budget-bar i.ok{background:#2563eb}
+.cat-budget-bar i.over{background:#ef4444}
+.cat-budget-bar i.no-budget{background:#d1d5db}
+.cat-budget-foot .ok{color:#16a34a}
+.cat-budget-foot .over{color:#ef4444}
+.cat-budget-foot .no-budget{color:#9ca3af}
