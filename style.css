@@ -58,7 +58,7 @@ header button{border:1px solid rgba(115,220,199,.22);background:rgba(18,73,68,.7
 .card{background:linear-gradient(145deg,#0b3e3a,#0a3532);border:1px solid rgba(116,220,198,.15);border-radius:17px;padding:12px;margin-top:9px;box-shadow:0 10px 24px rgba(0,0,0,.18)}
 .card h2{color:#f4fffb;font-size:12px;letter-spacing:-.1px;margin:0 0 7px}
 .budget{background:linear-gradient(145deg,#f4faf8,#dfece9);color:#08312f;border:0;box-shadow:0 8px 20px rgba(0,0,0,.16)}
-.budget h2,.budget b{color:#08312f}.budget button{color:#0b8d63;background:#d2efe5;border-radius:8px;padding:5px 8px;font-size:8px}.budget span{color:#5b7773;font-size:7px}.budget b{font-size:13px}.budget-available{display:flex;align-items:flex-end;justify-content:flex-start}.available-main{display:flex;flex-direction:column;align-items:flex-start;gap:2px}.budget .available-main span{font-size:12px;color:#5b7773}.budget .available-main .available-value{font-size:24px;color:#08312f;line-height:1.05}.progress{height:5px;background:#c9d9d5;margin-top:7px}.progress i{background:var(--primary);box-shadow:none}.progress i.danger{background:var(--danger)}
+.budget h2,.budget b{color:#08312f}.budget button{color:#0b8d63;background:#d2efe5;border-radius:8px;padding:5px 8px;font-size:8px}.budget span{color:#5b7773;font-size:7px}.budget b{font-size:13px}.progress{height:5px;background:#c9d9d5;margin-top:7px}.progress i{background:var(--primary);box-shadow:none}.progress i.danger{background:var(--danger)}
 .add{margin-top:9px;border:0;border-radius:13px;background:linear-gradient(90deg,#22dc8a,#0dbb70);color:#eafff7;font-weight:900;font-size:12px;padding:12px;box-shadow:0 8px 18px rgba(8,185,111,.25)}
 .report{background:linear-gradient(145deg,#0b413d,#0a3532);border:1px solid rgba(116,220,198,.16)}
 .report .report-month{font-size:7px;color:#a0c1bc}.report-grid{gap:6px;margin-top:5px}.report-grid>div{background:rgba(73,191,171,.09);border:1px solid rgba(116,220,198,.06);border-radius:10px;padding:8px}.report-grid span{font-size:7px;color:#9fc2bc}.report-grid b{font-size:10px;margin-top:3px;color:#f2fffb}.comparison,.available-report{border-color:rgba(116,220,198,.12);padding-top:8px;margin-top:8px;font-size:8px;color:#9fc2bc}.comparison strong,.available-report b{font-size:9px}
@@ -91,7 +91,7 @@ header button{border:1px solid rgba(115,220,199,.22);background:rgba(18,73,68,.7
   .split b{font-size:16px;margin-top:5px}
   .card{padding:16px;border-radius:20px;margin-top:14px}
   .card h2{font-size:17px;margin-bottom:12px}
-  .budget b{font-size:19px}.budget span{font-size:12px}.budget .available-main .available-value{font-size:24px}.budget .available-main{gap:3px}
+  .budget b{font-size:19px}.budget span{font-size:12px}
   .budget button{font-size:11px;padding:7px 10px;border-radius:10px}
   .progress{height:7px;margin-top:9px}
   .add{margin-top:14px;border-radius:16px;padding:17px;font-size:16px;min-height:50px;display:flex;align-items:center;justify-content:center}
@@ -118,3 +118,7 @@ header button{border:1px solid rgba(115,220,199,.22);background:rgba(18,73,68,.7
   .cat-budget-name{font-size:14px}
   .account-card{padding:16px}
 }
+
+/* Contiva budget layout */
+.budget-main-row{display:flex;justify-content:space-between;align-items:flex-end;min-height:42px}.budget-available{display:flex;flex-direction:column;align-items:flex-start}.budget-available span{display:block!important;font-size:12px!important;color:#5b7773!important}.budget-available b{display:block;font-size:19px!important;color:#08312f!important;margin-top:3px}.budget-status-hidden{display:none!important}
+@media(max-width:520px){.budget-main-row{min-height:40px}.budget-available span{font-size:8px!important}.budget-available b{font-size:13px!important}}

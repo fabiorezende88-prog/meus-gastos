@@ -18,7 +18,7 @@
 <div id="appShell" class="hidden"><div class="app">
 <header><div class="brand"><div class="brand-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M8 15h25a7 7 0 0 1 7 7v14a5 5 0 0 1-5 5H11a7 7 0 0 1-7-7V12a5 5 0 0 1 5-5h24a4 4 0 0 1 4 4v4H8z"/><path d="M31 22h13v10H31a5 5 0 0 1 0-10zM35 27h.01"/></svg></div><div><small>CONTROLE FINANCEIRO</small><h1>Contiva</h1><p class="tagline">Organize hoje, conquiste amanhã.</p></div></div><button id="monthBtn"></button></header>
 <section class="summary"><div class="summary-top"><div><span>Total gasto</span><strong id="total">R$ 0,00</strong></div><div class="trend" id="summaryTrend"><b>—</b><span>em relação ao mês anterior</span></div></div><div class="split"><div>Fixas<b id="fixed">R$ 0,00</b></div><div>Variáveis<b id="variable">R$ 0,00</b></div></div></section>
-<section class="card budget"><div class="row"><h2>Orçamento do mês</h2><button id="budgetBtn">Definir</button></div><div class="budget-available"><div class="available-main"><span>Disponível</span><b id="available" class="available-value">Sem orçamento</b></div></div><div class="progress"><i id="progress"></i></div></section>
+<section class="card budget"><div class="row"><h2>Orçamento do mês</h2><button id="budgetBtn">Definir</button></div><div class="budget-main-row"><div class="budget-available"><span>Disponível</span><b id="spent">R$ 0,00</b></div><span id="available" class="budget-status-hidden" aria-hidden="true"></span></div><div class="progress"><i id="progress"></i></div></section>
 <button class="add" id="addBtn">＋ GASTO</button><section class="card report"><div class="row"><h2>Relatório mensal</h2><span id="reportMonth" class="report-month"></span></div><div class="report-grid">
 <div><span>Total Gasto</span><b id="reportTotal">R$ 0,00</b></div><div><span>Fixas</span><b id="reportFixed">R$ 0,00</b></div><div><span>Variáveis</span><b id="reportVariable">R$ 0,00</b></div><div><span>Orçamento</span><b id="reportBudget">Não definido</b></div></div>
 <div class="comparison"><span id="comparisonLabel">Comparação com o mês anterior</span><strong id="comparisonValue">—</strong></div>
@@ -41,7 +41,7 @@
 <div class="modal hidden" id="months"><div class="sheet"><div class="row"><h2>Escolher mês</h2><button class="close" id="monthsClose">×</button></div><div id="monthList"></div></div></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js?v=25"></script>
-<script src="app.js?v=26"></script>
+<script src="app.js?v=25"></script>
 <script>
 (function(){
   document.querySelectorAll('.collapsible-head').forEach(function(head){
