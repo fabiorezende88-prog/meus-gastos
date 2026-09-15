@@ -64,11 +64,19 @@ function startRealtime(){if(!supabaseClient||!currentUser)return;supabaseClient.
 function showAuth(msg=""){ $("authScreen").classList.remove("hidden");$("appShell").classList.add("hidden");$("authStatus").textContent=msg}
 function showApp(){$("authScreen").classList.add("hidden");$("appShell").classList.remove("hidden")}
 async function initCloud(){
+ // Keep the login screen hidden while the mobile browser restores the persisted session.
+ // This prevents the brief login-screen flash seen when opening the installed PWA.
  if(!configured()){showAuth("A sincronização ainda não está configurada. Abra o arquivo config.js e coloque a URL e a chave anon do seu projeto Supabase.");return}
  // Use the browser's native persistent storage. This is the most reliable option
  // for Chrome mobile and avoids replacing Supabase's storage adapter.
  supabaseClient=window.supabase.createClient(window.SUPABASE_CONFIG.url,window.SUPABASE_CONFIG.anonKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storage:window.localStorage,storageKey:"meus_gastos_supabase_auth"}});
- const {data:{session}}=await supabaseClient.auth.getSession();
+ let session=null;
+ try{
+   const result=await supabaseClient.auth.getSession();
+   session=result?.data?.session||null;
+ }catch(e){
+   console.error("Falha ao restaurar sessão:",e);
+ }
  if(session){currentUser=session.user;showApp();await cloudLoad(true);startRealtime();}
  else showAuth("Entre ou crie sua conta para usar a sincronização.");
  supabaseClient.auth.onAuthStateChange(async(_event,session)=>{if(session){currentUser=session.user;showApp();await cloudLoad(true);startRealtime()}else{currentUser=null;showAuth("Você saiu da conta.")}});
