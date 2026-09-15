@@ -118,3 +118,13 @@ header button{border:1px solid rgba(115,220,199,.22);background:rgba(18,73,68,.7
   .cat-budget-name{font-size:14px}
   .account-card{padding:16px}
 }
+
+/* Ajuste do cartão de orçamento: disponível grande à esquerda e orçamento pequeno à direita */
+.budget-info{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin-top:2px;margin-bottom:0}
+.budget-available{display:flex;flex-direction:column;align-items:flex-start;min-width:0}
+.budget-available span,.budget-defined span{font-size:11px;color:#5b7773}
+.budget-available b{font-size:24px!important;line-height:1.05;margin-top:4px}
+.budget-available b.negative{color:#ef4444!important}
+.budget-defined{display:flex;flex-direction:column;align-items:flex-end;text-align:right;min-width:0}
+.budget-defined b{font-size:12px!important;font-weight:700;margin-top:3px;white-space:nowrap}
+@media(max-width:520px){.budget-info{gap:10px}.budget-available span,.budget-defined span{font-size:8px}.budget-available b{font-size:19px!important}.budget-defined b{font-size:9px!important}}
