@@ -66,9 +66,26 @@ function showApp(){$("authScreen").classList.add("hidden");$("appShell").classLi
 async function initCloud(){
  if(!configured()){showAuth("A sincronização ainda não está configurada. Abra o arquivo config.js e coloque a URL e a chave anon do seu projeto Supabase.");return}
  supabaseClient=window.supabase.createClient(window.SUPABASE_CONFIG.url,window.SUPABASE_CONFIG.anonKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storage:window.localStorage,storageKey:"meus_gastos_supabase_auth"}});
- // O PWA móvel pode iniciar antes de o storage do Supabase estar pronto.
- // Mantemos uma cópia explícita da sessão para restaurá-la imediatamente.
  const SESSION_KEY="meus_gastos_manual_session";
+ let booting=true;
+ let pendingSession=undefined;
+ const {data:{subscription}}=supabaseClient.auth.onAuthStateChange((event,session)=>{
+   if(booting){
+     pendingSession=session;
+     if(session){try{localStorage.setItem(SESSION_KEY,JSON.stringify({access_token:session.access_token,refresh_token:session.refresh_token}))}catch(e){}}
+     return;
+   }
+   if(session){
+     currentUser=session.user;
+     try{localStorage.setItem(SESSION_KEY,JSON.stringify({access_token:session.access_token,refresh_token:session.refresh_token}))}catch(e){}
+     showApp();
+     setTimeout(async()=>{await cloudLoad(true);startRealtime()},0);
+   }else{
+     currentUser=null;
+     try{localStorage.removeItem(SESSION_KEY)}catch(e){}
+     showAuth("Você saiu da conta.");
+   }
+ });
  async function restoreSession(){
    try{
      const r=await supabaseClient.auth.getSession();
@@ -83,25 +100,14 @@ async function initCloud(){
          }
        }
      }
-     return session||null;
-   }catch(e){console.warn("Falha ao restaurar sessão",e);return null}
+     return session||pendingSession||null;
+   }catch(e){console.warn("Falha ao restaurar sessão",e);return pendingSession||null}
  }
  const session=await restoreSession();
+ booting=false;
  if(session){currentUser=session.user;showApp();await cloudLoad(true);startRealtime();}
  else showAuth("Entre ou crie sua conta para usar a sincronização.");
- supabaseClient.auth.onAuthStateChange(async(_event,session)=>{
-   if(session){
-     currentUser=session.user;
-     try{localStorage.setItem(SESSION_KEY,JSON.stringify({access_token:session.access_token,refresh_token:session.refresh_token}))}catch(e){}
-     showApp();await cloudLoad(true);startRealtime();
-   }else{
-     currentUser=null;
-     try{localStorage.removeItem(SESSION_KEY)}catch(e){}
-     showAuth("Você saiu da conta.");
-   }
- });
 }
-
 function render(){let all=E.filter(x=>x.date.slice(0,7)==M).sort((a,b)=>b.created-a.created),tot=all.reduce((s,x)=>s+x.value,0),fix=all.filter(x=>x.type=="fixed").reduce((s,x)=>s+x.value,0);let L=all.filter(x=>(typeFilter=="all"||x.type==typeFilter)&&(categoryFilter=="all"||x.category==categoryFilter));$("monthBtn").textContent=ml(M);$("total").textContent=money(tot);$("fixed").textContent=money(fix);$("variable").textContent=money(tot-fix);
 $("list").innerHTML=L.length?L.map(x=>`<div class="expense"><div class="icon">${iconFor(x.category)}</div><div class="main"><b>${esc(x.description||x.category.slice(2))}</b><span>${x.type=="fixed"?"Fixa":"Variável"} · ${br(x.date)}</span></div><div class="amount">${money(x.value)}<button type="button" class="edit" onclick="edit('${x.id}')">Editar</button><button class="delete" onclick="del('${x.id}')">Excluir</button></div></div>`).join(""):`<div class="empty">Nenhuma despesa neste mês.<br>Toque em <b>+ GASTO</b> para começar.</div>`;
 let b=B[M]||0,avail=b-tot;$("spent").textContent=money(tot);$("available").textContent=b?(avail>=0?"Disponível: "+money(avail):"Acima do orçamento: "+money(-avail)):"Sem orçamento";$("progress").style.width=(b?Math.min(tot/b*100,100):0)+"%";$("progress").classList.toggle("danger",b&&tot>b);
