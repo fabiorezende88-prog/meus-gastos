@@ -20,6 +20,15 @@ iconSvg={
 },
 iconFor=c=>{let n=String(c).replace(/^[^ ]+\s/,'');return `<svg class="catSvg" viewBox="0 0 24 24" aria-hidden="true">${iconSvg[n]||iconSvg["Outros"]}</svg>`},
 $=x=>document.getElementById(x),money=n=>new Intl.NumberFormat("pt-BR",{style:"currency",currency:"BRL"}).format(n),ml=m=>{let[a,b]=m.split("-");return new Date(+a,+b-1,1).toLocaleDateString("pt-BR",{month:"long",year:"numeric"})},pm=v=>parseFloat(v.replace(/[^\d,.-]/g,"").replace(/\./g,"").replace(",","."));
+
+function getMonthlyReportData(month) {
+  const list = expenses.filter(e => String(e.date || "").slice(0, 7) === month);
+  const total = list.reduce((s,e) => s + Number(e.amount || 0), 0);
+  const fixed = list.filter(e => e.type === "fixed").reduce((s,e) => s + Number(e.amount || 0), 0);
+  const variable = list.filter(e => e.type === "variable").reduce((s,e) => s + Number(e.amount || 0), 0);
+  return { list, total, fixed, variable };
+}
+
 function save(){localStorage.setItem(K,JSON.stringify(E));localStorage.setItem(BK,JSON.stringify(B))}
 function render(){let all=E.filter(x=>x.date.slice(0,7)==M).sort((a,b)=>b.created-a.created),tot=all.reduce((s,x)=>s+x.value,0),fix=all.filter(x=>x.type=="fixed").reduce((s,x)=>s+x.value,0);let L=all.filter(x=>(typeFilter=="all"||x.type==typeFilter)&&(categoryFilter=="all"||x.category==categoryFilter));$("monthBtn").textContent=ml(M);$("total").textContent=money(tot);$("fixed").textContent=money(fix);$("variable").textContent=money(tot-fix);
 $("list").innerHTML=L.length?L.map(x=>`<div class="expense"><div class="icon">${iconFor(x.category)}</div><div class="main"><b>${esc(x.description||x.category.slice(2))}</b><span>${x.type=="fixed"?"Fixa":"Variável"} · ${br(x.date)}</span></div><div class="amount">${money(x.value)}<button type="button" class="edit" onclick="edit('${x.id}')">Editar</button><button class="delete" onclick="del('${x.id}')">Excluir</button></div></div>`).join(""):`<div class="empty">Nenhuma despesa neste mês.<br>Toque em <b>+ GASTO</b> para começar.</div>`;
