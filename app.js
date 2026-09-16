@@ -34,7 +34,11 @@ async function cloudUpsertAll(){if(!supabaseClient||!currentUser||cloudBusy)retu
  if(cb.length){const {error}=await supabaseClient.from("category_budgets").upsert(cb,{onConflict:"user_id,month,category"});if(error)throw error}
  syncText("Sincronizado");
 }catch(e){console.error(e);syncText("Erro ao sincronizar");alert("Não foi possível sincronizar agora. Verifique a conexão.");}finally{cloudBusy=false}}
-async function cloudLoad(mergeLocal=false,retry=true){if(!supabaseClient||!currentUser)return;syncText("Carregando dados…");try{const uid=currentUser.id;
+async function cloudLoad(mergeLocal=false){if(!supabaseClient||!currentUser)return;syncText("Carregando dados…");try{
+ // Em iPhone/PWA a sessão pode estar presente no storage, mas o access token pode estar expirado.
+ // Atualizamos a sessão explicitamente antes de consultar a API para evitar o erro intermitente ao reabrir o app.
+ try{const sr=await supabaseClient.auth.refreshSession();if(sr&&sr.data&&sr.data.session){currentUser=sr.data.session.user}}catch(refreshErr){console.warn("Refresh da sessão:",refreshErr)}
+ const uid=currentUser.id;
  const [{data:ex,error:e1},{data:bu,error:e2},{data:cb,error:e3}]=await Promise.all([
   supabaseClient.from("expenses").select("id,amount,type,category,description,expense_date,created_at").eq("user_id",uid),
   supabaseClient.from("budgets").select("month,amount").eq("user_id",uid),
@@ -58,20 +62,9 @@ async function cloudLoad(mergeLocal=false,retry=true){if(!supabaseClient||!curre
  save();render();syncText("Sincronizado");
  }catch(e){
    console.error("cloudLoad:",e);
-   // Em iPhone/Android, a sessão persistida pode precisar ser renovada ao abrir o PWA.
-   // Tenta renovar a sessão uma vez antes de mostrar erro ao usuário.
-   if(retry&&supabaseClient&&currentUser){
-     try{
-       const rr=await supabaseClient.auth.refreshSession();
-       const ns=rr.data&&rr.data.session;
-       if(ns){currentUser=ns.user;try{localStorage.setItem("meus_gastos_manual_session",JSON.stringify({access_token:ns.access_token,refresh_token:ns.refresh_token}))}catch(_){}}
-       if(ns)return cloudLoad(mergeLocal,false);
-     }catch(_){ }
-   }
-   syncText("Erro ao carregar dados");
-   // Mantém os dados locais na tela quando o PWA móvel estiver sem sessão/rede.
+   // Não apaga nem substitui os dados locais quando a rede/sessão falhar no celular.
    render();
-   if(retry)alert("Não foi possível carregar seus dados da nuvem agora. Seus dados locais foram mantidos. Verifique a conexão e tente novamente.");
+   syncText("Sem conexão com a nuvem — dados locais mantidos");
  }}
 async function deleteCloudExpense(id){if(!supabaseClient||!currentUser)return;const {error}=await supabaseClient.from("expenses").delete().eq("id",id).eq("user_id",currentUser.id);if(error)console.error(error)}
 async function deleteCloudMonth(month){if(!supabaseClient||!currentUser)return;await supabaseClient.from("expenses").delete().eq("user_id",currentUser.id).gte("expense_date",month+"-01").lt("expense_date",nextMonth(month)+"-01");await supabaseClient.from("budgets").delete().eq("user_id",currentUser.id).eq("month",month);await supabaseClient.from("category_budgets").delete().eq("user_id",currentUser.id).eq("month",month)}
